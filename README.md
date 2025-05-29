@@ -1,14 +1,12 @@
 # POC Rate Limit - Sistema Anti-Abuso para Recargas
 
-Este es un **Proof of Concept (POC)** desarrollado en **NestJS** que implementa un sistema de rate limiting para prevenir abuso en un endpoint de validación de líneas telefónicas. Utiliza **Redis** para gestionar los límites de velocidad y bloqueos temporales.
+Este es un **Proof of Concept (POC)** desarrollado en **NestJS** que implementa un sistema de rate limiting para prevenir abuso en un endpoint de validación de líneas. Utiliza **Redis** para gestionar los límites y bloqueos.
 
 ## 🚀 Características
 
 - **Rate Limiting**: Límite de 10 solicitudes por minuto por visitante
 - **Bloqueo temporal**: Bloqueo de 15 minutos tras superar el límite
-- **Persistencia en Redis**: Gestión eficiente de contadores y bloqueos
-- **Simulación realista**: Incluye delays artificiales para simular errores de red
-- **API RESTful**: Endpoint simple para validación de líneas
+- **Persistencia en Redis**: Utiliza redis para los contadores y bloqueos
 
 ## 🛠️ Stack Tecnológico
 
@@ -49,6 +47,48 @@ docker-compose up -d
 
 ```bash
 npm run start:dev
+```
+
+### Prueba de Rate Limiting
+
+Para probar el rate limiting, utilizar el frontend Next.js que implementa FingerprintJS para generar un `visitorId` único.
+
+<https://github.com/larturi/poc-recargas-antiabuso-next>
+
+## ⚙️ Configuración del Rate Limiting
+
+### Parámetros actuales
+
+- **Límite de requests**: 10 por minuto
+- **Ventana de tiempo**: 60 segundos
+- **Tiempo de bloqueo**: 15 minutos (900 segundos)
+- **Simulación de error**: 30% de probabilidad
+
+### Modificar configuración
+
+En `src/rate-limit/rate-limit.service.ts`:
+
+```typescript
+// Cambiar límite de requests
+return count <= 10; // Modificar este número
+
+// Cambiar ventana de tiempo
+await this.redis.expire(key, 60); // segundos
+
+// Cambiar tiempo de bloqueo
+await this.redis.set(key, '1', 'EX', 900); // segundos
+```
+
+## 📁 Estructura del Proyecto
+
+```bash
+src/
+├── app.module.ts           # Módulo principal con configuración de Redis
+├── main.ts                 # Punto de entrada de la aplicación
+├── rate-limit/
+│   └── rate-limit.service.ts   # Lógica de rate limiting
+└── recargas/
+    └── recargas.controller.ts  # Controlador del endpoint
 ```
 
 La aplicación estará disponible en `http://localhost:3000`
@@ -107,14 +147,6 @@ Valida una línea telefónica aplicando rate limiting por visitor.
 }
 ```
 
-**❌ Datos faltantes (400)**
-
-```json
-{
-  "error": "Faltan datos"
-}
-```
-
 ## 🧪 Pruebas
 
 ### Con cURL
@@ -126,60 +158,6 @@ curl --location 'http://localhost:3000/api/validar-linea' \
   "numeroLinea": "1112345678",
   "visitorId": "abc123456789"
 }'
-```
-
-### Con Postman
-
-1. Crear una nueva request POST
-2. URL: `http://localhost:3000/api/validar-linea`
-3. Headers: `Content-Type: application/json`
-4. Body (raw JSON):
-
-```json
-{
-  "numeroLinea": "1112345678",
-  "visitorId": "unique-visitor-id"
-}
-```
-
-### Prueba de Rate Limiting
-
-Para probar el rate limiting, ejecuta la misma request más de 10 veces en 1 minuto con el mismo `visitorId`.
-
-## ⚙️ Configuración del Rate Limiting
-
-### Parámetros actuales
-
-- **Límite de requests**: 10 por minuto
-- **Ventana de tiempo**: 60 segundos
-- **Tiempo de bloqueo**: 15 minutos (900 segundos)
-- **Simulación de error**: 30% de probabilidad
-
-### Modificar configuración
-
-En `src/rate-limit/rate-limit.service.ts`:
-
-```typescript
-// Cambiar límite de requests
-return count <= 10; // Modificar este número
-
-// Cambiar ventana de tiempo
-await this.redis.expire(key, 60); // segundos
-
-// Cambiar tiempo de bloqueo
-await this.redis.set(key, '1', 'EX', 900); // segundos
-```
-
-## 📁 Estructura del Proyecto
-
-```bash
-src/
-├── app.module.ts           # Módulo principal con configuración de Redis
-├── main.ts                 # Punto de entrada de la aplicación
-├── rate-limit/
-│   └── rate-limit.service.ts   # Lógica de rate limiting
-└── recargas/
-    └── recargas.controller.ts  # Controlador del endpoint
 ```
 
 ## 🐳 Docker
@@ -234,17 +212,4 @@ FLUSHALL
 ```bash
 # Desarrollo
 npm run start:dev
-
-# Producción
-npm run build
-npm run start:prod
-
-# Testing
-npm run test
-npm run test:e2e
-npm run test:cov
-
-# Linting y formato
-npm run lint
-npm run format
 ```
