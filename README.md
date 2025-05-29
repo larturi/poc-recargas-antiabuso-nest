@@ -57,34 +57,28 @@ Para probar el rate limiting, utilizar el frontend Next.js que implementa Finger
 
 ## ⚙️ Configuración del Rate Limiting
 
-### Parámetros actuales
-
-- **Límite de requests**: 10 por minuto
-- **Ventana de tiempo**: 60 segundos
-- **Tiempo de bloqueo**: 15 minutos (900 segundos)
-- **Simulación de error**: 30% de probabilidad
-
 ### Modificar configuración
 
-En `src/rate-limit/rate-limit.service.ts`:
+En `src/constants.ts`:
 
 ```typescript
 // Cambiar límite de requests
-return count <= 10; // Modificar este número
+export const RATE_LIMIT_MAX_REQUESTS = 10
 
 // Cambiar ventana de tiempo
-await this.redis.expire(key, 60); // segundos
+export const RATE_LIMIT_DURATION_SECONDS = 60
 
 // Cambiar tiempo de bloqueo
-await this.redis.set(key, '1', 'EX', 900); // segundos
+export const RATE_LIMIT_BLOCK_DURATION_SECONDS = 900 // (15 minutos)
 ```
 
 ## 📁 Estructura del Proyecto
 
 ```bash
 src/
-├── app.module.ts           # Módulo principal con configuración de Redis
-├── main.ts                 # Punto de entrada de la aplicación
+├── app.module.ts               # Módulo principal con configuración de Redis
+├── main.ts                     # Punto de entrada de la aplicación
+├── constants.ts                # Configuración del límit (cantidad y segundos)
 ├── rate-limit/
 │   └── rate-limit.service.ts   # Lógica de rate limiting
 └── recargas/

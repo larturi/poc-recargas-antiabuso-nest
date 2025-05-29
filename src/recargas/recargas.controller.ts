@@ -15,7 +15,7 @@ export class RecargasController {
     }
 
     // Verifica si el visitorId está bloqueado
-    // Este visitorId ya está castigado y bloqueado preventivamente por 15 minutos?”
+    // Este visitorId ya está castigado y bloqueado preventivamente por RATE_LIMIT_BLOCK_DURATION_SECONDS minutos?”
     // Si es sí, ni lo dejamos avanzar, 429 (Too Many Requests).
     if (await this.rateLimiter.isBlocked(visitorId)) {
       return res.status(HttpStatus.TOO_MANY_REQUESTS).json({
@@ -24,8 +24,8 @@ export class RecargasController {
     }
 
     // Verifica si puede seguir intentando
-    // Cuántas veces consultó este visitorId en los últimos 60 segundos?
-    // Si son más de 10, se lo bloquea por 15 minutos.
+    // Cuántas veces consultó este visitorId en los últimos RATE_LIMIT_DURATION_SECONDS?
+    // Si son más de RATE_LIMIT_MAX_REQUESTS, se lo bloquea por RATE_LIMIT_BLOCK_DURATION_SECONDS.
     const allowed = await this.rateLimiter.isAllowed(visitorId);
     if (!allowed) {
       await this.rateLimiter.block(visitorId);
