@@ -38,10 +38,13 @@ export class RecargasController {
     const lineaValida = Math.random() > 0.3;
 
     if (!lineaValida) {
-      await new Promise((r) => setTimeout(r, 2000)); // Delay artificial para errores
-      return res.status(200).json({
+      await new Promise((r) => setTimeout(r, 1000)); // Delay artificial para errores
+      return res.status(400).json({
         success: false,
-        message: 'No pudimos procesar tu solicitud. Intentá más tarde.',
+        data: {
+          mensaje: 'Línea no válida',
+          numero: numeroLinea,
+        },
       });
     }
 
